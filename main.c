@@ -87,29 +87,17 @@ int main (int argc, char **argv) {
 		case '3':
 			printf("Ingrese nombre de usuario para eliminar: ");
 			fgets(usrNme, 20, stdin);
-			asprintf(&query, "DELETE FROM usuarios WHERE username = '%s';", &usrNme);
+			asprintf(&query, "DELETE FROM usuarios WHERE username = '%s';\n commit;", &usrNme);
 			rc=sqlite3_exec(db, query, NULL, NULL, &errMsg);
 			if (errMsg != NULL) {
 				printf("Error in sqlite3_exec: %s\n", errMsg);
 				sqlite3_free(errMsg);
 			}
+			getchar();
 			free(query);
-			//strcpy(fullStmt, "DELETE FROM usuarios WHERE userName = '");
-			//strncat(fullStmt, usrNme, 1024);
-			//strncat(fullStmt, "';", 1024);
-			//printf(fullStmt);
-			//rc = sqlite3_exec(db, fullStmt, NULL, NULL, &errMsg);
-			//if (rc != SQLITE_OK) {
-				//fprintf(stderr, "Error al crear el primer registro: %s.\n", errMsg);
-				//sqlite3_free(errMsg);
-				//sqlite3_close(db);
-				//return(2);
-			//}
-			fullStmt[0] = '\0';
 		break;
 		case '4':
 			// Consulta a realizar sobre la tabla.
-			// En este caso quiero los campos idEmpresa y Nombre de la tabla Empresa
 			rc = sqlite3_prepare(db, "SELECT * FROM usuarios", -1, &result, NULL);
 			// Compruebo que no hay error
 			if (rc != SQLITE_OK) {
@@ -125,6 +113,14 @@ int main (int argc, char **argv) {
 																		, sqlite3_column_text(result, 3), sqlite3_column_text(result, 4));
 				getchar();
 			}
+		break;
+		case '5':
+			prinft("Ingrese nombre del nuevo alumno: \n");
+			printf("Ingrese numero de documento: \n");
+			printf("Ingrese plan de pago deseado: \n");
+			printf("1 -- 6 cuotas sin interes \n");
+			printf("2 -- 12 cuotas con interes del 10 porciento \n");
+			printf("1 -- 1 pago con 35 porciento de descuento \n");
 		break;
 		}
 	}while(response != '0');
@@ -146,7 +142,10 @@ int Menu()
 		printf("2 -- Modificar Usuario\n"); 
 		printf("3 -- Eliminar Usuario\n"); 
 		printf("4 -- Listar Usuarios Actuales\n"); 
-		printf("0- Salir\n"); 
+		printf("5 -- Inscripcion nuevo Alumno\n");
+		printf("6 -- Cobros adeudados al dia de la fecha\n"); 
+		printf("7 -- Cierre de caja\n"); 
+		printf("0 -- Salir\n"); 
 		fgets(resp, 15, stdin); 
 	}while(resp[0] < '0' && resp[0] > '9'|| resp[0]=="f"); 
 		return resp[0];while(resp!=0);
