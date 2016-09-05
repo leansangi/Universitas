@@ -5,15 +5,15 @@
 ## Debug
 ProjectName            :=Universitas
 ConfigurationName      :=Debug
-WorkspacePath          :="C:/Users/Han Solo/Documents/Workspace-c"
-ProjectPath            :="C:/Users/Han Solo/Documents/Workspace-c/Universitas"
+WorkspacePath          :=C:/Users/lsangine/Documents/Workspace-c
+ProjectPath            :=C:/Users/lsangine/Documents/Workspace-c/Universitas
 IntermediateDirectory  :=./Debug
 OutDir                 := $(IntermediateDirectory)
 CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
-User                   :=Han Solo
-Date                   :=03/09/2016
+User                   :=LSangine
+Date                   :=05/09/2016
 CodeLitePath           :="C:/Program Files/CodeLite"
 LinkerName             :=C:/TDM-GCC-64/bin/g++.exe
 SharedObjectLinkerName :=C:/TDM-GCC-64/bin/g++.exe -shared -fPIC
@@ -94,7 +94,7 @@ PreBuild:
 ## Objects
 ##
 $(IntermediateDirectory)/main.c$(ObjectSuffix): main.c $(IntermediateDirectory)/main.c$(DependSuffix)
-	$(CC) $(SourceSwitch) "C:/Users/Han Solo/Documents/Workspace-c/Universitas/main.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/main.c$(ObjectSuffix) $(IncludePath)
+	$(CC) $(SourceSwitch) "C:/Users/lsangine/Documents/Workspace-c/Universitas/main.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/main.c$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/main.c$(DependSuffix): main.c
 	@$(CC) $(CFLAGS) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/main.c$(ObjectSuffix) -MF$(IntermediateDirectory)/main.c$(DependSuffix) -MM main.c
 
