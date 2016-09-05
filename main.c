@@ -12,6 +12,12 @@ int main (int argc, char **argv) {
 	char resp[50];
 	char fullStmt[1024];
 	int response;
+	char aluNme[1024];
+	char aluDni[20];
+	char auxOpcionLocal[50];
+	char auxObservaciones[1024];
+	int auxIntDni;
+	int auxIntMetodo;
 	sqlite3 *db;          // Definimos un puntero a la base de datos
 	char *errMsg = 0;     // Variable para el mensaje de error
 	int rc;               // Variable para el retorno de la sentencia
@@ -107,7 +113,8 @@ int main (int argc, char **argv) {
 			}
 			// Bucle de presentación en pantalla del resultado de la consulta
 			while ( sqlite3_step(result) == SQLITE_ROW) {
-				fprintf(stderr, "Los usuarios actuales son:  ID = %i - UserName = %s - Privilegios = %i - Correo = %s - Sede = %s.\n", sqlite3_column_int(result, 0)
+				fprintf(stderr, "Los usuarios actuales son:  ============= ID = %i \n UserName = %s \n Privilegios = %i \n Correo = %s \n Sede = %s.\n"
+																					, sqlite3_column_int(result, 0)
 																					, sqlite3_column_text(result, 1)
 																					, sqlite3_column_int(result, 2)
 																		, sqlite3_column_text(result, 3), sqlite3_column_text(result, 4));
@@ -115,12 +122,44 @@ int main (int argc, char **argv) {
 			}
 		break;
 		case '5':
-			prinft("Ingrese nombre del nuevo alumno: \n");
+			printf("Ingrese nombre del nuevo alumno: \n");
+			fgets(aluNme, 1024, stdin);
 			printf("Ingrese numero de documento: \n");
-			printf("Ingrese plan de pago deseado: \n");
-			printf("1 -- 6 cuotas sin interes \n");
-			printf("2 -- 12 cuotas con interes del 10 porciento \n");
-			printf("1 -- 1 pago con 35 porciento de descuento \n");
+			fgets(aluDni, 20, stdin);
+			printf("Ingrese plan de pago deseado: \n 1 -- 6 cuotas sin interes \n 2 -- 12 cuotas con interes del 10 porciento \n 1 -- 1 pago con 35 porciento de descuento \n");
+			fgets(auxOpcionLocal, 50, stdin);
+			printf("Ingrese, de ser necesario, una observacion del usuario: \n");
+			fgets(auxObservaciones, 1024, stdin);
+			auxIntDni = atoi(aluDni);
+			auxIntMetodo = atoi(auxOpcionLocal);
+			asprintf(&query, "INSERT INTO alumnos(aluNme, aluDni, metodoPago, costoTotal, observaciones) VALUES ('%s', '%i', '%i', '%i', '%s')", &aluNme
+															, auxIntDni, auxIntMetodo, 25000, &auxObservaciones);
+			rc=sqlite3_exec(db, query, NULL, NULL, &errMsg);
+			if (errMsg != NULL) {
+				printf("Error in sqlite3_exec: %s\n", errMsg);
+				sqlite3_free(errMsg);
+			}
+			getchar();
+			free(query);
+		break;
+		case '8':
+			// Consulta a realizar sobre la tabla.
+			rc = sqlite3_prepare(db, "SELECT * FROM alumnos", -1, &result, NULL);
+			// Compruebo que no hay error
+			if (rc != SQLITE_OK) {
+				fprintf(stderr, "Error en la consulta: %s.\n", sqlite3_errmsg(db));
+				sqlite3_close(db);
+				return(3);
+			}
+			// Bucle de presentación en pantalla del resultado de la consulta
+			while ( sqlite3_step(result) == SQLITE_ROW) {
+				fprintf(stderr, "Los usuarios actuales son:  ============= ID = %i \n Nombre Alumno = %s \n Dni = %i \n Metodo de Pago = %i \n Costo total del año = %i.\n Observaciones = %s \n"
+																					, sqlite3_column_int(result, 0)
+																					, sqlite3_column_text(result, 1)
+																					, sqlite3_column_int(result, 2)
+																		, sqlite3_column_int(result, 3), sqlite3_column_int(result, 4), sqlite3_column_text(result, 5));
+				getchar();
+			}
 		break;
 		}
 	}while(response != '0');
@@ -145,9 +184,29 @@ int Menu()
 		printf("5 -- Inscripcion nuevo Alumno\n");
 		printf("6 -- Cobros adeudados al dia de la fecha\n"); 
 		printf("7 -- Cierre de caja\n"); 
+		printf("8 -- Listar Alumnos Actuales\n");
 		printf("0 -- Salir\n"); 
 		fgets(resp, 15, stdin); 
 	}while(resp[0] < '0' && resp[0] > '9'|| resp[0]=="f"); 
 		return resp[0];while(resp!=0);
 }
 
+int letraANum (char* buffersillo[]){
+	char buffer[50];
+	int i, val, len, maxlen;
+	
+	maxlen = atoi( buffersillo[1] );
+	len = strlen(buffer) - 1;  // because buffer includes a newline char
+	if( len > maxlen ){
+		printf( "too long\n" );
+		return 1;
+	}
+	for( i = 0; i < len; ++i ) {
+		if(  !isdigit( buffer[i] ) ){
+			printf( "invalid input\n" );
+			return 1;
+		}
+	}
+	val = atoi(buffer);
+	return (val);
+}
