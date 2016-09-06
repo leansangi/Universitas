@@ -132,7 +132,7 @@ int main (int argc, char **argv) {
 			fgets(auxObservaciones, 1024, stdin);
 			auxIntDni = atoi(aluDni);
 			auxIntMetodo = atoi(auxOpcionLocal);
-			asprintf(&query, "INSERT INTO alumnos(aluNme, aluDni, metodoPago, costoTotal, observaciones) VALUES ('%s', '%i', '%i', '%i', '%s')", &aluNme
+			asprintf(&query, "INSERT INTO alumnos(aluNme, aluDni, metodoPago, costoTotal, nroCuenta, legajo, observaciones) VALUES ('%s', '%i', '%i', '%i', '%i', '%i', '%s')", &aluNme
 															, auxIntDni, auxIntMetodo, 25000, &auxObservaciones);
 			rc=sqlite3_exec(db, query, NULL, NULL, &errMsg);
 			if (errMsg != NULL) {
@@ -141,6 +141,9 @@ int main (int argc, char **argv) {
 			}
 			getchar();
 			free(query);
+		break;
+		case '6':
+			
 		break;
 		case '8':
 			// Consulta a realizar sobre la tabla.
@@ -191,22 +194,6 @@ int Menu()
 		return resp[0];while(resp!=0);
 }
 
-int letraANum (char* buffersillo[]){
-	char buffer[50];
-	int i, val, len, maxlen;
+int generarLegajo(int numDni){
 	
-	maxlen = atoi( buffersillo[1] );
-	len = strlen(buffer) - 1;  // because buffer includes a newline char
-	if( len > maxlen ){
-		printf( "too long\n" );
-		return 1;
-	}
-	for( i = 0; i < len; ++i ) {
-		if(  !isdigit( buffer[i] ) ){
-			printf( "invalid input\n" );
-			return 1;
-		}
-	}
-	val = atoi(buffer);
-	return (val);
 }
