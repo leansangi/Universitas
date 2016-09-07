@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <sqlite3.h>
 #include <string.h>
+#include <time.h>
 
 int Menu();
 
@@ -14,15 +15,28 @@ int main (int argc, char **argv) {
 	int response;
 	char aluNme[1024];
 	char aluDni[20];
+	int auxIntPago;
+	char auxPago[15];
 	char auxOpcionLocal[50];
 	char auxObservaciones[1024];
 	int auxIntDni;
 	int auxIntMetodo;
+	int legajo;
 	sqlite3 *db;          // Definimos un puntero a la base de datos
 	char *errMsg = 0;     // Variable para el mensaje de error
 	int rc;               // Variable para el retorno de la sentencia
 	sqlite3_stmt *stmt;
 	sqlite3_stmt *result; // Puntero a la respuesta de la consulta
+	int auxLegajo;
+	char auxChDni[1024];
+	int auxPlanCuotas;
+	int auxTotalAdeudado;
+	int auxNroCuota;
+	int auxCobro;
+	int fecha;
+	int auxNroCuenta = 0;
+	int auxIntPago2;
+	
 	rc = sqlite3_open("universitas.db", &db);
 	// Abro la conexión con la base de datos
 	if (rc != SQLITE_OK) {
@@ -93,7 +107,7 @@ int main (int argc, char **argv) {
 		case '3':
 			printf("Ingrese nombre de usuario para eliminar: ");
 			fgets(usrNme, 20, stdin);
-			asprintf(&query, "DELETE FROM usuarios WHERE username = '%s';\n commit;", &usrNme);
+			asprintf(&query, "DELETE FROM usuarios WHERE username = '%s';", &usrNme);
 			rc=sqlite3_exec(db, query, NULL, NULL, &errMsg);
 			if (errMsg != NULL) {
 				printf("Error in sqlite3_exec: %s\n", errMsg);
@@ -104,7 +118,7 @@ int main (int argc, char **argv) {
 		break;
 		case '4':
 			// Consulta a realizar sobre la tabla.
-			rc = sqlite3_prepare(db, "SELECT * FROM usuarios", -1, &result, NULL);
+			rc = sqlite3_prepare(db, "SELECT * FROM usuarios;", -1, &result, NULL);
 			// Compruebo que no hay error
 			if (rc != SQLITE_OK) {
 				fprintf(stderr, "Error en la consulta: %s.\n", sqlite3_errmsg(db));
@@ -126,14 +140,38 @@ int main (int argc, char **argv) {
 			fgets(aluNme, 1024, stdin);
 			printf("Ingrese numero de documento: \n");
 			fgets(aluDni, 20, stdin);
-			printf("Ingrese plan de pago deseado: \n 1 -- 6 cuotas sin interes \n 2 -- 12 cuotas con interes del 10 porciento \n 1 -- 1 pago con 35 porciento de descuento \n");
+			printf("Ingrese plan de pago deseado: \n 1 -- 6 cuotas sin interes \n 2 -- 12 cuotas con interes del 10 porciento \n 3 -- 1 pago con 35 porciento de descuento \n");
 			fgets(auxOpcionLocal, 50, stdin);
 			printf("Ingrese, de ser necesario, una observacion del usuario: \n");
 			fgets(auxObservaciones, 1024, stdin);
 			auxIntDni = atoi(aluDni);
 			auxIntMetodo = atoi(auxOpcionLocal);
-			asprintf(&query, "INSERT INTO alumnos(aluNme, aluDni, metodoPago, costoTotal, observaciones) VALUES ('%s', '%i', '%i', '%i', '%s')", &aluNme
-															, auxIntDni, auxIntMetodo, 25000, &auxObservaciones);
+			
+			//Buscamos el valor actual del contador de legajos en la tabla de Datos Auxiliares
+			rc = sqlite3_prepare(db, "SELECT legajoActual FROM auxiliaryData;", -1, &result, NULL);
+			if (rc != SQLITE_OK) {
+				fprintf(stderr, "Error en la consulta: %s.\n", sqlite3_errmsg(db));
+				sqlite3_close(db);
+				return(3);
+			}
+			while ( sqlite3_step(result) == SQLITE_ROW) {
+				auxLegajo = sqlite3_column_int(result,0);
+			}
+			++auxLegajo; //Aumentamos el valor del campo auxiliar a impactar en el alumno
+			
+			fecha = getDate();
+			//Cargamos Alumno nuevo
+			asprintf(&query, "INSERT INTO alumnos(aluNme, aluDni, metodoPago, costoTotal, nroCuenta, legajo, observaciones, fechaIngreso, estadoAlu) VALUES ('%s', '%i', '%i', '%i', '%i', '%i', '%s', '%i', 'ACTIVO');", &aluNme
+															, auxIntDni, auxIntMetodo, 25000, auxIntDni, auxLegajo, &auxObservaciones, fecha);
+			rc=sqlite3_exec(db, query, NULL, NULL, &errMsg);
+			if (errMsg != NULL) {
+				printf("Error in sqlite3_exec: %s\n", errMsg);
+				sqlite3_free(errMsg);
+			}
+			free(query);
+			
+			//Actualizamos valor del campo axuiliar del numero de legajo correspondiente a cada alumno
+			asprintf(&query, "UPDATE auxiliaryData SET legajoActual = %i;", auxLegajo);
 			rc=sqlite3_exec(db, query, NULL, NULL, &errMsg);
 			if (errMsg != NULL) {
 				printf("Error in sqlite3_exec: %s\n", errMsg);
@@ -141,6 +179,122 @@ int main (int argc, char **argv) {
 			}
 			getchar();
 			free(query);
+			
+			switch(auxIntMetodo){
+				case '1':
+					asprintf(&query, "INSERT INTO pagos (nroCuenta, planCuotas, nroCuota, totalAdeudado, fecha) VALUES ('%i', '6', '1', '25000', '%i');", auxIntDni, fecha);
+					rc=sqlite3_exec(db, query, NULL, NULL, &errMsg);
+					if (errMsg != NULL) {
+						printf("Error in sqlite3_exec: %s\n", errMsg);
+						sqlite3_free(errMsg);
+					}
+					free(query);
+				break;
+				case '2':
+				asprintf(&query, "INSERT INTO pagos (nroCuenta, planCuotas, nroCuota, totalAdeudado) VALUES ('%i', '12', '1', '25000', '%i');", auxIntDni, fecha);
+					rc=sqlite3_exec(db, query, NULL, NULL, &errMsg);
+					if (errMsg != NULL) {
+						printf("Error in sqlite3_exec: %s\n", errMsg);
+						sqlite3_free(errMsg);
+					}
+					free(query);
+				break;
+				case '3':
+				asprintf(&query, "INSERT INTO pagos (nroCuenta, planCuotas, nroCuota, totalAdeudado) VALUES ('%i', '1', '1', '25000', '%i');", auxIntDni, fecha);
+					rc=sqlite3_exec(db, query, NULL, NULL, &errMsg);
+					if (errMsg != NULL) {
+						printf("Error in sqlite3_exec: %s\n", errMsg);
+						sqlite3_free(errMsg);
+					}
+					free(query);
+				break;
+			}
+			
+		break;
+		case '6':
+			auxPago[0] = '\0';
+			auxIntPago2 = 0;
+			auxPlanCuotas = 0;
+			auxTotalAdeudado = 0;
+			auxNroCuota = 0;
+			auxCobro = 0;
+			fecha = 0;
+			printf("1 -- Legajo de Alumno \n2 -- Dni del Alumno \n");
+			fgets(auxPago, 15, stdin);
+			auxIntPago = atoi(auxPago);
+			if(auxIntPago == 1){
+				printf("Ingrese Legajo de usuario: \n");
+				fgets(auxPago, 1024, stdin);
+				auxIntPago2 = atoi(auxPago);
+				fecha = getDate();
+				asprintf(&query, "SELECT nroCuenta FROM alumnos WHERE legajo = '%i';", auxIntPago2);
+				rc = sqlite3_prepare(db, query, -1, &result, NULL);
+				if (rc != SQLITE_OK) {
+					fprintf(stderr, "Error en la consulta: %s.\n", sqlite3_errmsg(db));
+					sqlite3_close(db);
+					return(3);
+				}
+				while ( sqlite3_step(result) == SQLITE_ROW) {
+					auxNroCuenta = sqlite3_column_int(result,0);
+				}
+				free(query);
+				// ----------------------------------------------------------------------
+				asprintf(&query, "SELECT * FROM pagos WHERE nroCuenta = '%i';", auxNroCuenta);
+				rc = sqlite3_prepare(db, query, -1, &result, NULL);
+				if (rc != SQLITE_OK) {
+					fprintf(stderr, "Error en la consulta: %s.\n", sqlite3_errmsg(db));
+					sqlite3_close(db);
+					return(3);
+				}
+				while ( sqlite3_step(result) == SQLITE_ROW) {
+					auxPlanCuotas = sqlite3_column_int(result, 1);
+					auxTotalAdeudado = sqlite3_column_int(result, 2);
+					auxNroCuota = sqlite3_column_int(result, 3);
+				}
+				auxCobro = division(25000, auxPlanCuotas);
+				auxTotalAdeudado = auxTotalAdeudado - auxCobro;
+				printf("Cobro a imputar: '%i' pesos \n", auxCobro);
+				// ----------------------------------------------------------------------
+				asprintf(&query, "UPDATE pagos SET totalAdeudado = '%i', fecha = '%i' WHERE nroCuenta = '%i';", auxTotalAdeudado, fecha, auxNroCuenta);
+				rc = sqlite3_exec(db, query, NULL, NULL, &errMsg);
+				if (rc != SQLITE_OK) {
+					fprintf(stderr, "Error al crear el primer registro: %s.\n", errMsg);
+					sqlite3_free(errMsg);
+					sqlite3_close(db);
+					return(2);
+				}
+			}else{
+				
+				printf("Ingrese Dni de usuario: \n");
+				fgets(auxPago, 15, stdin);
+				auxIntPago2 = atoi(auxPago);
+				fecha = getDate();
+				asprintf(&query, "SELECT * FROM pagos WHERE nroCuenta = '%i';", auxIntPago2);
+				rc = sqlite3_prepare(db, query, -1, &result, NULL);
+				if (rc != SQLITE_OK) {
+					fprintf(stderr, "Error en la consulta: %s.\n", sqlite3_errmsg(db));
+					sqlite3_close(db);
+					return(3);
+				}
+				while ( sqlite3_step(result) == SQLITE_ROW) {
+					auxPlanCuotas = sqlite3_column_int(result, 1);
+					auxTotalAdeudado = sqlite3_column_int(result, 2);
+					auxNroCuota = sqlite3_column_int(result, 3);
+				}
+				auxCobro = 25000 / auxPlanCuotas;
+				auxTotalAdeudado = auxTotalAdeudado - auxCobro;
+				printf("Cobro a imputar: '%i' pesos \n", auxCobro);
+				// ----------------------------------------------------------------------
+				asprintf(&query, "UPDATE pagos SET totalAdeudado = '%i', fecha = '%i' WHERE nroCuenta = '%i';", auxTotalAdeudado, fecha, auxNroCuenta);
+				rc = sqlite3_exec(db, query, NULL, NULL, &errMsg);
+				if (rc != SQLITE_OK) {
+					fprintf(stderr, "Error al crear el primer registro: %s.\n", errMsg);
+					sqlite3_free(errMsg);
+					sqlite3_close(db);
+					return(2);
+				}
+				
+			}
 		break;
 		case '8':
 			// Consulta a realizar sobre la tabla.
@@ -153,11 +307,13 @@ int main (int argc, char **argv) {
 			}
 			// Bucle de presentación en pantalla del resultado de la consulta
 			while ( sqlite3_step(result) == SQLITE_ROW) {
-				fprintf(stderr, "Los usuarios actuales son:  ============= ID = %i \n Nombre Alumno = %s \n Dni = %i \n Metodo de Pago = %i \n Costo total del año = %i.\n Observaciones = %s \n"
+				fprintf(stderr, "Los usuarios actuales son:  ============= ID = %i \n Nombre Alumno = %s \n Dni = %i \n Metodo de Pago = %i \n Costo total del anio = %i.\n Numero de Cuenta = %i \n Legajo = %i \n Observaciones = %s \n Fecha de Ingreso = %i \n Estado = %s \n"
 																					, sqlite3_column_int(result, 0)
 																					, sqlite3_column_text(result, 1)
 																					, sqlite3_column_int(result, 2)
-																		, sqlite3_column_int(result, 3), sqlite3_column_int(result, 4), sqlite3_column_text(result, 5));
+																		, sqlite3_column_int(result, 3), sqlite3_column_int(result, 4), sqlite3_column_int(result, 5)
+																		, sqlite3_column_int(result, 6), sqlite3_column_text(result, 7), sqlite3_column_int(result, 8)
+																					, sqlite3_column_text(result, 9));
 				getchar();
 			}
 		break;
@@ -182,31 +338,40 @@ int Menu()
 		printf("3 -- Eliminar Usuario\n"); 
 		printf("4 -- Listar Usuarios Actuales\n"); 
 		printf("5 -- Inscripcion nuevo Alumno\n");
-		printf("6 -- Cobros adeudados al dia de la fecha\n"); 
+		printf("6 -- Ingresar Pago\n"); 
 		printf("7 -- Cierre de caja\n"); 
 		printf("8 -- Listar Alumnos Actuales\n");
+		printf("9 -- Dar de baja Alumno\n");
 		printf("0 -- Salir\n"); 
 		fgets(resp, 15, stdin); 
 	}while(resp[0] < '0' && resp[0] > '9'|| resp[0]=="f"); 
 		return resp[0];while(resp!=0);
 }
 
-int letraANum (char* buffersillo[]){
-	char buffer[50];
-	int i, val, len, maxlen;
-	
-	maxlen = atoi( buffersillo[1] );
-	len = strlen(buffer) - 1;  // because buffer includes a newline char
-	if( len > maxlen ){
-		printf( "too long\n" );
-		return 1;
+int getDate(){
+	int ff;
+	time_t now;
+	struct tm ts;
+	char buf[80];
+	// Get current time
+	time(&now);
+	// Format time, "ddd yyyy-mm-dd hh:mm:ss zzz"
+	ts = *localtime(&now);
+	strftime(buf, sizeof(buf), "%Y%d%m", &ts);
+	ff = atoi(buf);
+	return (ff);
+}
+
+int division(int a,int b) { /*DEFINICION DE FUNCION*/
+	double resu;
+	if(b != 0) {
+		resu = (double)a/b;
 	}
-	for( i = 0; i < len; ++i ) {
-		if(  !isdigit( buffer[i] ) ){
-			printf( "invalid input\n" );
-			return 1;
-		}
+	else {
+		printf("La division entre cero no esta permitida. ");
+		return -1;
 	}
-	val = atoi(buffer);
-	return (val);
+		/*regresa la division de los dos numeros introducidos*/
+	int resu2 = (int) resu;
+	return resu2;
 }
