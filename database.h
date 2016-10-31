@@ -1,0 +1,9 @@
+int agregarUsuario();
+int modificarUsuario();
+int eliminarUsuario();
+int listaUsuarios();
+int inscribirAlu();
+int ingresarPago();
+int cierreCaja();
+int listarAlu();
+int bajaAlu();

@@ -1,1 +1,1 @@
-./Debug/main.c.o   
+./Debug/main.c.o ./Debug/securitas.c.o ./Debug/database.c.o ./Debug/general.c.o   
