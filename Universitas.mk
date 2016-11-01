@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=LSangine
-Date                   :=05/09/2016
+Date                   :=01/11/2016
 CodeLitePath           :="C:/Program Files/CodeLite"
 LinkerName             :=C:/TDM-GCC-64/bin/g++.exe
 SharedObjectLinkerName :=C:/TDM-GCC-64/bin/g++.exe -shared -fPIC
@@ -62,7 +62,7 @@ AS       := C:/TDM-GCC-64/bin/as.exe
 ## User defined environment variables
 ##
 CodeLiteDir:=C:\Program Files\CodeLite
-Objects0=$(IntermediateDirectory)/main.c$(ObjectSuffix) 
+Objects0=$(IntermediateDirectory)/main.c$(ObjectSuffix) $(IntermediateDirectory)/securitas.c$(ObjectSuffix) $(IntermediateDirectory)/database.c$(ObjectSuffix) $(IntermediateDirectory)/general.c$(ObjectSuffix) 
 
 
 
@@ -100,6 +100,30 @@ $(IntermediateDirectory)/main.c$(DependSuffix): main.c
 
 $(IntermediateDirectory)/main.c$(PreprocessSuffix): main.c
 	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/main.c$(PreprocessSuffix)main.c
+
+$(IntermediateDirectory)/securitas.c$(ObjectSuffix): securitas.c $(IntermediateDirectory)/securitas.c$(DependSuffix)
+	$(CC) $(SourceSwitch) "C:/Users/lsangine/Documents/Workspace-c/Universitas/securitas.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/securitas.c$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/securitas.c$(DependSuffix): securitas.c
+	@$(CC) $(CFLAGS) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/securitas.c$(ObjectSuffix) -MF$(IntermediateDirectory)/securitas.c$(DependSuffix) -MM securitas.c
+
+$(IntermediateDirectory)/securitas.c$(PreprocessSuffix): securitas.c
+	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/securitas.c$(PreprocessSuffix)securitas.c
+
+$(IntermediateDirectory)/database.c$(ObjectSuffix): database.c $(IntermediateDirectory)/database.c$(DependSuffix)
+	$(CC) $(SourceSwitch) "C:/Users/lsangine/Documents/Workspace-c/Universitas/database.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/database.c$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/database.c$(DependSuffix): database.c
+	@$(CC) $(CFLAGS) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/database.c$(ObjectSuffix) -MF$(IntermediateDirectory)/database.c$(DependSuffix) -MM database.c
+
+$(IntermediateDirectory)/database.c$(PreprocessSuffix): database.c
+	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/database.c$(PreprocessSuffix)database.c
+
+$(IntermediateDirectory)/general.c$(ObjectSuffix): general.c $(IntermediateDirectory)/general.c$(DependSuffix)
+	$(CC) $(SourceSwitch) "C:/Users/lsangine/Documents/Workspace-c/Universitas/general.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/general.c$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/general.c$(DependSuffix): general.c
+	@$(CC) $(CFLAGS) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/general.c$(ObjectSuffix) -MF$(IntermediateDirectory)/general.c$(DependSuffix) -MM general.c
+
+$(IntermediateDirectory)/general.c$(PreprocessSuffix): general.c
+	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/general.c$(PreprocessSuffix)general.c
 
 
 -include $(IntermediateDirectory)/*$(DependSuffix)

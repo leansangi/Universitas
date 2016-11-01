@@ -9,6 +9,12 @@
   <Dependencies/>
   <VirtualDirectory Name="src">
     <File Name="main.c"/>
+    <File Name="securitas.h"/>
+    <File Name="securitas.c"/>
+    <File Name="database.h"/>
+    <File Name="database.c"/>
+    <File Name="general.c"/>
+    <File Name="general.h"/>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>
@@ -104,4 +110,6 @@
       </Completion>
     </Configuration>
   </Settings>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
 </CodeLite_Project>
